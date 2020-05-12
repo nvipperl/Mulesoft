@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="CSV" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="status" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="nehaStatus" format="json">
+      <types:shape format="weave" example="examples/Neha'sStatus-1.txt"><![CDATA[%dw 2.0
+
+type nehaStatus = {|
+  Name: Number {"typeId": "int"}, 
+  Inventory: Number {"typeId": "int"}, 
+  StatusDescription: String
+|} {"example": "{\\\"Name\\\":4,\\\"Inventory\\\":900,\\\"StatusDescription\\\":\\\"Open\\\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#c8420b34-9ab3-4cae-9db3-68e5b73364c5">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="nehaStatus"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#628ff3ec-2283-4dc2-a2c0-283fbbb9476a">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="nehaStatus"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

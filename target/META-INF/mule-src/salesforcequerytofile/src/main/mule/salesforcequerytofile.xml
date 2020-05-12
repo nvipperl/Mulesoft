@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="b3391b72-66a1-4e03-8b75-4ff19cdacc90" >
+		<http:listener-connection host="0.0.0.0" port="8095" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="3164d8f8-3f07-4eb1-ad80-ed86ef451f2a" >
+		<salesforce:cached-basic-connection username="nehavipperla236@gmail.com" password="Create@1993" securityToken="S5deAjuMvxfP8kwwQ6mGMuZmo" />
+	</salesforce:sfdc-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="87e847d7-24b7-4119-ad6f-d4f25bdb1971" />
+	<salesforce:sfdc-config name="sfdc_Config" doc:name="Salesforce Config" doc:id="6dc64199-79cd-4807-b930-2e6f383554dc" >
+		<salesforce:cached-basic-connection username="nehavipperla236@gmail.com" password="Create@1993" securityToken="EmRYSHHblj091moFyvhtbAe2J" />
+	</salesforce:sfdc-config>
+	<flow name="Copy_of_SalesforceQuerytoFileFlow" doc:id="b1c28f79-de4c-422b-b933-7d5dc1d6203d" initialState="started">
+		<scheduler doc:name="sched" doc:id="b7a91351-23ba-4118-9a46-1c33d9ec6b38" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="5" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<salesforce:query doc:name="Query" doc:id="de199c09-23d3-4b36-8f27-16c4a7240e96" config-ref="sfdc_Config">
+			<salesforce:salesforce-query >SELECT Name,Phone,BillingAddress FROM Account</salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="ed3a003d-aa32-41a1-ae5c-f3b6b11254b2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+ payload map(payload, index)->{
+   Name: payload.Name,
+   phone:payload.Phone, 
+   country: payload.BillingAddress.country,
+   State:  payload.BillingAddress.state,
+   city: payload.BillingAddress.city,
+   street:payload.BillingAddress.street
+ }
+
+		
+   ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b908822b-b152-4d5f-95ec-fe2217416398" message="#[payload]" />
+		<file:write doc:name="Write" doc:id="6f9f4946-8906-4410-a08f-2c5aa21acfc3" config-ref="File_Config" path="C:\Users\nehav\Desktop\output.csv" mode="APPEND">
+			</file:write>
+		<logger level="INFO" doc:name="Logger" doc:id="92220f5b-0bf1-43be-90f9-19dd9856fc99" message="#[payload]"/>
+	</flow>
+	<flow name="salesforcecreate" doc:id="96fc6840-a7d2-49de-a86d-6caed88afcd0" >
+		<http:listener doc:name="Listener" doc:id="ed0c8ee9-6acf-48ff-b2db-dbe696a1926f" config-ref="HTTP_Listener_config" path="/create"/>
+		<ee:transform doc:name="Transform Message" doc:id="c8420b34-9ab3-4cae-9db3-68e5b73364c5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Inventory__c:payload.Inventory,
+	Statues_Description__c: payload.StatusDescription
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="792b207e-a0f7-4a0b-be3b-0154c75c570c" config-ref="sfdc_Config" type="Neha_s_Status__c"/>
+	</flow>
+	<flow name="salesforceUpdate" doc:id="0e4888cc-c929-4dcf-8d42-2ac2d92cc8b3" >
+		<http:listener doc:name="Listener" doc:id="870bf389-9bda-4bb4-b7b2-844549851408" config-ref="HTTP_Listener_config" path="/update"/>
+		<ee:transform doc:name="Transform Message" doc:id="628ff3ec-2283-4dc2-a2c0-283fbbb9476a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Name:payload.Name,
+	Inventory__c:payload.Inventory,
+	Statues_Description__c: payload.StatusDescription
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="a6679cc5-e3a6-4e26-a562-f6ef0380a6b6" />
+		<salesforce:upsert type="Neha_s_Status__c" doc:name="Upsert" doc:id="99ae890c-f086-4571-85e3-eb6538575729" config-ref="sfdc_Config" externalIdFieldName="Name"/>
+		<ee:transform doc:name="Transform Message" doc:id="73932bbd-be0a-40ee-a83c-e3f2f1af204c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

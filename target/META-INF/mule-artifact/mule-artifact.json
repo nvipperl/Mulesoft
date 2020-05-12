@@ -1,0 +1,27 @@
+{
+  "configs": [
+    "salesforcequerytofile.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:salesforcequerytofile:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.2.2",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "application-types.xml",
+        "examples/Neha\u0027sStatus-1.txt",
+        "examples/Neha\u0027sStatus.txt",
+        "log4j2.xml",
+        "salesforcequerytofile.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}
